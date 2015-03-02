@@ -46,7 +46,7 @@ end
 
 def send_consul_deploy(application, environment)
   application, environment = [Shellwords.escape(application), Shellwords.escape(environment)]
-  puts "Processing deploy event: #{deploy}"
   deploy = "#{application}-#{environment}-deploy"
+  puts "Processing deploy event: #{deploy}"
   consul_server.send_request('PUT', "/v1/event/fire/#{deploy}", sender)
 end
