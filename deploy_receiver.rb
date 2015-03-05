@@ -1,7 +1,6 @@
 require 'sinatra'
 require 'oj'
 require 'shellwords'
-require 'net/http'
 
 set :server, 'puma'
 
@@ -10,7 +9,7 @@ get '/' do
   Oj.dump(json)
 end
 
-post '/deploy' do
+post '/github' do
   request.body.rewind
   payload_body = request.body.read
   verify_signature(payload_body)
@@ -19,18 +18,12 @@ post '/deploy' do
   puts "Payload: #{push.inspect}"
 
   sender = push['sender']['login']
-  set_consul_user(sender)
-
   application = push['repository']['name']
   environment = push['ref'].split('/').last
-  send_consul_deploy(application, environment)
+  send_consul_deploy(application, environment, sender, 'GitHub')
 
   json = {ok: true}
   Oj.dump(json)
-end
-
-def consul_server
-  Net::HTTP.new('localhost', 8500)
 end
 
 def verify_signature(payload_body)
@@ -38,15 +31,12 @@ def verify_signature(payload_body)
   return halt 500, "Signatures didn't match!" unless Rack::Utils.secure_compare(signature, request.env['HTTP_X_HUB_SIGNATURE'])
 end
 
-def set_consul_user(sender)
-  sender = Shellwords.escape(sender)
-  puts "Sender: #{sender}"
-  consul_server.send_request('PUT', "/v1/kv/deploy/sender", sender)
-end
+def send_consul_deploy(application, environment, sender, source)
+  application, environment, sender, source = [Shellwords.escape(application), Shellwords.escape(environment), Shellwords.escape(sender), Shellwords.escape(source)]
 
-def send_consul_deploy(application, environment)
-  application, environment = [Shellwords.escape(application), Shellwords.escape(environment)]
   deploy = "#{application}-#{environment}-deploy"
-  puts "Processing deploy event: #{deploy}"
-  consul_server.send_request('PUT', "/v1/event/fire/#{deploy}")
+  payload = "#{sender} #{source}"
+  puts %Q(Processing deploy command: #{deploy} #{payload})
+
+  `/usr/local/bin/consul event -name="#{deploy}" "#{payload}"`
 end
