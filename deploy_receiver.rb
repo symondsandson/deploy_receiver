@@ -59,5 +59,5 @@ def send_consul_deploy(application:, environment:, sender:, source:)
   payload = "#{sender} #{source}"
   puts %Q(Processing deploy command: #{deploy} #{payload})
 
-  `/usr/local/bin/consul event -name="#{deploy}" "#{payload}"`
+  `/usr/local/bin/consul event -datacenter="#{environment}" -name="#{deploy}" "#{payload}"`
 end
