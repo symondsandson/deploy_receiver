@@ -59,5 +59,11 @@ def send_consul_deploy(application:, environment:, sender:, source:)
   payload = "#{sender} #{source}"
   puts %Q(Processing deploy command: #{deploy} #{payload})
 
-  `/usr/local/bin/consul event -datacenter="#{environment}" -name="#{deploy}" "#{payload}"`
+  consul = `which consul`.chomp
+  # Try deploying first with a datacenter, then without
+  raise "Could not send deploy command!" unless
+    system(%Q(#{consul} event -datacenter="#{environment}" -name="#{deploy}" "#{payload}")) ||
+    system(%Q(#{consul} event -name="#{deploy}" "#{payload}"))
+
+  puts "Deploy event fired!"
 end
