@@ -47,6 +47,18 @@ post '/github' do
   Oj.dump(json)
 end
 
+post '/bitbucket' do
+  push = Oj.load(request.body.read)
+  puts "Payload: #{push.inspect}"
+
+  send_consul_deploy(
+    sender: push['actor']['username'],
+    application: push['repository']['name'].split(/[^A-Za-z]/).first.downcase,
+    environment: push['push']['changes'].sample['new']['name'],
+    source: 'BitBucket'
+  )
+end
+
 def verify_signature(payload_body, signature)
   calc = 'sha1=' + OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), ENV['SECRET_TOKEN'], payload_body)
   return halt 500, "Signatures didn't match!" unless Rack::Utils.secure_compare(calc, signature)
