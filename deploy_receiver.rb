@@ -51,12 +51,14 @@ post '/bitbucket' do
   push = Oj.load(request.body.read)
   puts "Payload: #{push.inspect}"
 
-  send_consul_deploy(
-    sender: push['actor']['username'],
-    application: push['repository']['name'].split(/[^A-Za-z]/).first.downcase,
-    environment: push['push']['changes'].sample['new']['name'],
-    source: 'BitBucket'
-  )
+  push['push']['changes'].each do |change|
+    send_consul_deploy(
+      sender: push['actor']['username'],
+      application: push['repository']['name'].split(/[^A-Za-z]/).first.downcase,
+      environment: change['new']['name'],
+      source: 'BitBucket'
+    )
+  end
 end
 
 def verify_signature(payload_body, signature)
