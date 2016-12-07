@@ -18,10 +18,27 @@ post '/deploy' do
   puts "Payload: #{push.inspect}"
 
   send_consul_deploy(
-    sender: push['sender'],
+    payload: "#{push['sender']} #{push['source']}",
     application: push['application'],
     environment: push['environment'],
-    source: push['source']
+  )
+
+  json = {ok: true}
+  Oj.dump(json)
+end
+
+post '/kubernetes' do
+  request.body.rewind
+  payload_body = request.body.read
+  verify_signature(payload_body, request.env['HTTP_X_SIGNATURE'])
+
+  push = Oj.load(params['payload'])
+  puts "Payload: #{push.inspect}"
+
+  send_consul_deploy(
+    application: 'kubernetes',
+    environment: push['environment'],
+    payoad: "#{push['sender']} #{push['image']} #{push['application']}"
   )
 
   json = {ok: true}
@@ -37,10 +54,9 @@ post '/github' do
   puts "Payload: #{push.inspect}"
 
   send_consul_deploy(
-    sender: push['sender']['login'],
+    payload: "#{push['sender']['login']} GitHub",
     application: push['repository']['name'],
-    environment: push['ref'].split('/').last,
-    source: 'GitHub'
+    environment: push['ref'].split('/').last
   )
 
   json = {ok: true}
@@ -53,10 +69,9 @@ post '/bitbucket' do
 
   push['push']['changes'].each do |change|
     send_consul_deploy(
-      sender: push['actor']['username'],
+      payload: "#{push['actor']['username']} BitBucket",
       application: push['repository']['name'].split(/[^A-Za-z]/).first.downcase,
-      environment: change['new']['name'],
-      source: 'BitBucket'
+      environment: change['new']['name']
     )
   end
 end
@@ -66,11 +81,10 @@ def verify_signature(payload_body, signature)
   return halt 500, "Signatures didn't match!" unless Rack::Utils.secure_compare(calc, signature)
 end
 
-def send_consul_deploy(application:, environment:, sender:, source:)
-  application, environment, sender, source = [Shellwords.escape(application), Shellwords.escape(environment), Shellwords.escape(sender), Shellwords.escape(source)]
+def send_consul_deploy(application:, environment:, payload:)
+  application, environment, payload = [Shellwords.escape(application), Shellwords.escape(environment), Shellwords.escape(payload)]
 
   deploy = "#{application}-#{environment}-deploy"
-  payload = "#{sender} #{source}"
   puts %Q(Processing deploy command: #{deploy} #{payload})
 
   consul = `which consul`.chomp
