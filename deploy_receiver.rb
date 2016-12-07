@@ -82,7 +82,7 @@ def verify_signature(payload_body, signature)
 end
 
 def send_consul_deploy(application:, environment:, payload:)
-  application, environment, payload = [Shellwords.escape(application), Shellwords.escape(environment), Shellwords.escape(payload)]
+  application, environment = [Shellwords.escape(application), Shellwords.escape(environment)]
 
   deploy = "#{application}-#{environment}-deploy"
   puts %Q(Processing deploy command: #{deploy} #{payload})
