@@ -38,7 +38,7 @@ post '/kubernetes' do
   send_consul_deploy(
     application: 'kubernetes',
     environment: push['environment'],
-    payoad: "#{push['sender']} #{push['image']} #{push['application']}"
+    payload: "#{push['sender']} #{push['image']} #{push['application']}"
   )
 
   json = {ok: true}
