@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'oj'
 require 'shellwords'
+require 'diplomat'
 
 set :server, 'puma'
 
@@ -87,11 +88,8 @@ def send_consul_deploy(application:, environment:, payload:)
   deploy = "#{application}-#{environment}-deploy"
   puts %Q(Processing deploy command: #{deploy} #{payload})
 
-  consul = `which consul`.chomp
-  # Try deploying first with a datacenter, then without
-  raise "Could not send deploy command!" unless
-    system(%Q(#{consul} event -datacenter="#{environment}" -name="#{deploy}" "#{payload}")) ||
-    system(%Q(#{consul} event -name="#{deploy}" "#{payload}"))
+  dc = Diplomat::Datacenter.get.include?(environment) ? environment : nil
+  Diplomat::Event.fire(deploy, payload, nil, nil, nil, dc)
 
   puts "Deploy event fired!"
 end
