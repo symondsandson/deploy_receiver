@@ -39,7 +39,8 @@ post '/kubernetes' do
   send_consul_deploy(
     application: 'kubernetes',
     environment: push['environment'],
-    payload: "#{push['sender']} #{push['image']} #{push['application']}"
+    payload: "#{push['sender']} #{push['image']} #{push['application']}",
+    stack: push['stack']
   )
 
   json = {ok: true}
@@ -82,10 +83,12 @@ def verify_signature(payload_body, signature)
   return halt 500, "Signatures didn't match!" unless Rack::Utils.secure_compare(calc, signature)
 end
 
-def send_consul_deploy(application:, environment:, payload:)
+def send_consul_deploy(application:, environment:, payload:, stack: nil)
+  stack = environment unless stack
+
   application, environment = [Shellwords.escape(application), Shellwords.escape(environment)]
 
-  deploy = "#{application}-#{environment}-deploy"
+  deploy = "#{application}-#{stack}-deploy"
   puts %Q(Processing deploy command: #{deploy} #{payload})
 
   dc = Diplomat::Datacenter.get.include?(environment) ? environment : nil
