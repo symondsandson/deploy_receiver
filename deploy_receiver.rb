@@ -55,11 +55,19 @@ post '/github' do
   push = Oj.load(params['payload'])
   puts "Payload: #{push.inspect}"
 
-  send_consul_deploy(
-    payload: "#{push['sender']['login']} GitHub",
-    application: push['repository']['name'],
-    environment: push['ref'].split('/').last
-  )
+  environments = [push['ref'].split('/').last]
+  # If master is getting deployed, try pushing everywhere and hope something is listening
+  if environments == ['master']
+    environments = ['staging', 'production']
+  end
+
+  environments.each do |environment|
+    send_consul_deploy(
+      payload: "#{push['sender']['login']} GitHub",
+      application: push['repository']['name'],
+      environment: environment
+    )
+  end
 
   json = {ok: true}
   Oj.dump(json)
