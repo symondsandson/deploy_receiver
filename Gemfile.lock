@@ -1,25 +1,29 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    diplomat (2.0.2)
-      faraday (~> 0.9)
-      json
-    faraday (0.14.0)
+    deep_merge (1.2.1)
+    diplomat (2.4.0)
+      deep_merge (~> 1.0, >= 1.0.1)
+      faraday (>= 0.9, < 2.0.0)
+    faraday (1.0.1)
       multipart-post (>= 1.2, < 3)
-    json (2.1.0)
-    multipart-post (2.0.0)
-    mustermann (1.0.2)
-    oj (3.5.0)
-    puma (3.11.3)
-    rack (2.0.4)
-    rack-protection (2.0.1)
+    multipart-post (2.1.1)
+    mustermann (1.1.1)
+      ruby2_keywords (~> 0.0.1)
+    nio4r (2.5.2)
+    oj (3.10.6)
+    puma (4.3.5)
+      nio4r (~> 2.0)
+    rack (2.2.3)
+    rack-protection (2.0.8.1)
       rack
-    sinatra (2.0.1)
+    ruby2_keywords (0.0.2)
+    sinatra (2.0.8.1)
       mustermann (~> 1.0)
       rack (~> 2.0)
-      rack-protection (= 2.0.1)
+      rack-protection (= 2.0.8.1)
       tilt (~> 2.0)
-    tilt (2.0.8)
+    tilt (2.0.10)
 
 PLATFORMS
   ruby
@@ -31,4 +35,4 @@ DEPENDENCIES
   sinatra
 
 BUNDLED WITH
-   1.16.1
+   2.1.4

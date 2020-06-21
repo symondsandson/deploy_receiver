@@ -20,6 +20,8 @@ post '/deploy' do
 
   send_consul_deploy(
     payload: "#{push['sender']} #{push['source']}",
+    sender: push['sender'],
+    source: push['source'],
     application: push['application'],
     environment: push['environment'],
   )
@@ -39,6 +41,8 @@ post '/kubernetes' do
   send_consul_deploy(
     application: 'kubernetes',
     environment: push['environment'],
+    sender: push['sender'],
+    source: push['source'],
     payload: "#{push['sender']} #{push['image']} #{push['application']}",
     stack: push['stack']
   )
@@ -64,6 +68,8 @@ post '/github' do
   environments.each do |environment|
     send_consul_deploy(
       payload: "#{push['sender']['login']} GitHub",
+      sender: push['sender']['login'],
+      source: 'GitHub',
       application: push['repository']['name'],
       environment: environment
     )
